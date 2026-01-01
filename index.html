@@ -4,13 +4,12 @@
   <meta charset="UTF-8" />
   <title>NeuroGen</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
       background: #0b0f1a;
-      color: #eaeaea;
+      color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -20,110 +19,91 @@
     .chat {
       width: 100%;
       max-width: 420px;
-      background: #12172a;
-      border-radius: 10px;
-      padding: 15px;
+      background: #11162a;
+      padding: 16px;
+      border-radius: 8px;
       box-sizing: border-box;
-      display: flex;
-      flex-direction: column;
     }
 
     .messages {
-      flex: 1;
+      height: 300px;
       overflow-y: auto;
       margin-bottom: 10px;
     }
 
     .msg {
-      padding: 8px 10px;
-      border-radius: 6px;
-      margin-bottom: 6px;
-      font-size: 14px;
+      margin-bottom: 8px;
     }
 
     .user {
-      background: #2563eb;
-      align-self: flex-end;
+      color: #4ea1ff;
     }
 
     .bot {
-      background: #1f2937;
-      align-self: flex-start;
+      color: #a6ffb0;
     }
 
     input, button {
+      width: 100%;
       padding: 10px;
-      font-size: 14px;
-      border-radius: 6px;
+      margin-top: 6px;
       border: none;
-    }
-
-    input {
-      flex: 1;
-      margin-right: 6px;
+      border-radius: 4px;
+      box-sizing: border-box;
     }
 
     button {
       background: #22c55e;
-      color: #000;
+      font-weight: bold;
       cursor: pointer;
-    }
-
-    .input-row {
-      display: flex;
     }
   </style>
 </head>
-
 <body>
+
   <div class="chat">
     <div class="messages" id="messages">
       <div class="msg bot">NeuroGen online. Speak.</div>
     </div>
 
-    <div class="input-row">
-      <input id="input" placeholder="Ask NeuroGen..." />
-      <button onclick="send()">Send</button>
-    </div>
+    <input id="input" placeholder="Ask NeuroGen..." />
+    <button onclick="send()">Send</button>
   </div>
 
   <script>
-    const API = "https://neurogen.up.railway.app/ask";
+    const API_URL = "https://neurogen.up.railway.app/ask";
+    const messages = document.getElementById("messages");
+    const input = document.getElementById("input");
+
+    function add(role, text) {
+      const div = document.createElement("div");
+      div.className = "msg " + role;
+      div.textContent = (role === "user" ? "You: " : "NeuroGen: ") + text;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+    }
 
     async function send() {
-      const input = document.getElementById("input");
       const text = input.value.trim();
       if (!text) return;
 
-      addMessage(text, "user");
+      add("user", text);
       input.value = "";
 
       try {
-        const res = await fetch("https://neurogen.up.railway.app/ask", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({
-    message: userInput
-  })
-});
+        const res = await fetch(API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text })
+        });
 
         const data = await res.json();
-        addMessage(data.reply || "No response.", "bot");
-      } catch (e) {
-        addMessage("Connection error.", "bot");
+        add("bot", data.reply || "No response.");
+      } catch (err) {
+        add("bot", "Connection error.");
       }
     }
-
-    function addMessage(text, cls) {
-      const box = document.getElementById("messages");
-      const div = document.createElement("div");
-      div.className = "msg " + cls;
-      div.textContent = text;
-      box.appendChild(div);
-      box.scrollTop = box.scrollHeight;
-    }
   </script>
+
 </body>
 </html>
