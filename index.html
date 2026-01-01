@@ -99,11 +99,15 @@
       input.value = "";
 
       try {
-        const res = await fetch(API, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text })
-        });
+        const res = await fetch("https://neurogen.up.railway.app/ask", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    message: userInput
+  })
+});
 
         const data = await res.json();
         addMessage(data.reply || "No response.", "bot");
