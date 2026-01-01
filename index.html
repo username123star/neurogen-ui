@@ -2,52 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>NeuroGen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
+    * {
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
     body {
       margin: 0;
-      padding: 0;
-      background: #0b1324;
-      color: #e5f0ff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
 
-    .app {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    .header {
-      font-size: 18px;
+    header {
+      padding: 14px 18px;
+      background: #020617;
+      border-bottom: 1px solid #1e293b;
       font-weight: 600;
-      margin-bottom: 16px;
+      font-size: 16px;
     }
 
-    .chat {
-      background: #111b34;
-      border-radius: 12px;
+    #chat {
+      flex: 1;
+      overflow-y: auto;
       padding: 16px;
-      min-height: 300px;
-      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
     .msg {
-      margin-bottom: 12px;
-      line-height: 1.5;
+      max-width: 85%;
+      padding: 12px 14px;
+      border-radius: 12px;
+      line-height: 1.4;
+      white-space: pre-wrap;
     }
 
     .user {
-      color: #5da9ff;
+      align-self: flex-end;
+      background: #2563eb;
+      color: white;
     }
 
     .bot {
-      color: #7CFFB2;
+      align-self: flex-start;
+      background: #020617;
+      border: 1px solid #1e293b;
     }
 
-    .input-row {
+    footer {
+      padding: 12px;
+      background: #020617;
+      border-top: 1px solid #1e293b;
       display: flex;
       gap: 10px;
     }
@@ -58,66 +71,90 @@
       border-radius: 8px;
       border: none;
       outline: none;
-      font-size: 16px;
+      background: #020617;
+      color: white;
+      border: 1px solid #1e293b;
+      font-size: 15px;
     }
 
     button {
-      padding: 12px 18px;
+      padding: 0 18px;
       border-radius: 8px;
       border: none;
-      font-size: 16px;
-      cursor: pointer;
-      background: #2ECC71;
-      color: #000;
+      background: #22c55e;
+      color: black;
       font-weight: 600;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   </style>
 </head>
 
 <body>
-  <div class="app">
-    <div class="header">NeuroGen online. Speak.</div>
 
-    <div id="chat" class="chat"></div>
+  <header>NeuroGen</header>
 
-    <div class="input-row">
-      <input id="input" placeholder="Ask NeuroGen..." />
-      <button onclick="send()">Send</button>
-    </div>
+  <div id="chat">
+    <div class="msg bot">Hello. I am NeuroGen.</div>
   </div>
+
+  <footer>
+    <input id="input" placeholder="Ask NeuroGen..." />
+    <button id="send">Send</button>
+  </footer>
 
   <script>
     const chat = document.getElementById("chat");
     const input = document.getElementById("input");
+    const sendBtn = document.getElementById("send");
 
-    function add(role, text) {
+    const API_URL = "https://neurogen.up.railway.app/ask";
+
+    function addMessage(text, type) {
       const div = document.createElement("div");
-      div.className = "msg " + role;
-      div.innerText = text;
+      div.className = "msg " + type;
+      div.textContent = text;
       chat.appendChild(div);
       chat.scrollTop = chat.scrollHeight;
     }
 
-    async function send() {
+    async function sendMessage() {
       const message = input.value.trim();
       if (!message) return;
 
-      add("user", "You: " + message);
+      addMessage(message, "user");
       input.value = "";
+      sendBtn.disabled = true;
+
+      addMessage("Thinking...", "bot");
 
       try {
-        const res = await fetch("https://neurogen.up.railway.app/ask", {
+        const res = await fetch(API_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ message })
         });
 
         const data = await res.json();
-        add("bot", "NeuroGen: " + (data.reply || "No response."));
-      } catch (e) {
-        add("bot", "NeuroGen: Connection error.");
+        chat.lastChild.textContent = data.reply || "No response.";
+
+      } catch (err) {
+        chat.lastChild.textContent = "Connection error.";
       }
+
+      sendBtn.disabled = false;
     }
+
+    sendBtn.onclick = sendMessage;
+
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") sendMessage();
+    });
   </script>
+
 </body>
 </html>
