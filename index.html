@@ -270,6 +270,20 @@ function addMessage(text, type) {
     return originalFetch(url, options);
   };
 })();
+ // ===== NeuroGen FINAL Intelligent Endpoint Lock (ADD-ONLY) =====
+(function () {
+  const originalFetch = window.fetch;
+
+  window.fetch = function (url, options) {
+    if (typeof url === "string") {
+      // Force intelligent mode directly to execute.v3
+      if (url.includes("/chat") && document.getElementById("modeToggle")?.checked) {
+        url = url.replace("/chat", "/execute.v3");
+      }
+    }
+    return originalFetch(url, options);
+  };
+})();
 </script>
 
 </body>
