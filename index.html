@@ -125,54 +125,6 @@
 </footer>
 
 <script>
-  // ===== NeuroGen Extension Layer (ADD-ONLY, SAFE) =====
-(function () {
-  const originalAddMessage = window.addMessage;
-
-  if (!originalAddMessage) return;
-
-  let thinkingNode = null;
-
-  function showThinking() {
-    thinkingNode = document.createElement("div");
-    thinkingNode.className = "msg bot";
-    thinkingNode.textContent = "•••";
-    chat.appendChild(thinkingNode);
-    chat.scrollTop = chat.scrollHeight;
-  }
-
-  function hideThinking() {
-    if (thinkingNode) {
-      thinkingNode.remove();
-      thinkingNode = null;
-    }
-  }
-
-  function stream(text) {
-    hideThinking();
-
-    const msg = document.createElement("div");
-    msg.className = "msg bot";
-    chat.appendChild(msg);
-
-    let i = 0;
-    const timer = setInterval(() => {
-      msg.textContent += text[i++];
-      chat.scrollTop = chat.scrollHeight;
-      if (i >= text.length) clearInterval(timer);
-    }, 20);
-  }
-
-  // Override rendering ONLY, logic untouched
-  window.addMessage = function (text, type) {
-    if (type === "bot") {
-      showThinking();
-      setTimeout(() => stream(text), 300);
-    } else {
-      originalAddMessage(text, type);
-    }
-  };
-})();
 const BACKEND_URL = "https://neurogen.up.railway.app/chat";
 
 const input = document.getElementById("input");
@@ -195,15 +147,17 @@ async function sendMessage() {
   try {
     const response = await fetch(BACKEND_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json"
+      },
       body: JSON.stringify({ message: text })
     });
 
     const data = await response.json();
-    addMessage(data.reply, "bot");
+    addMessage(data.reply || "I’m here.", "bot");
 
-  } catch {
-    addMessage("I’m still here. Try again.", "bot");
+  } catch (err) {
+    addMessage("I couldn’t reach the server. Try again.", "bot");
   }
 
   sendBtn.disabled = false;
@@ -215,89 +169,7 @@ function addMessage(text, type) {
   msg.textContent = text;
   chat.appendChild(msg);
   chat.scrollTop = chat.scrollHeight;
-}
-  // ===== NeuroGen Mode Toggle Layer (ADD-ONLY) =====
-(function () {
-  const toggle = document.getElementById("modeToggle");
-  if (!toggle) return;
-
-  // Default endpoint remains /chat
-  let activeEndpoint = "/chat";
-
-  toggle.addEventListener("change", () => {
-    activeEndpoint = toggle.checked ? "/execute" : "/chat";
-  });
-
-  // Hijack ONLY the endpoint value, not logic
-  const originalFetch = window.fetch;
-
-  window.fetch = function (url, options) {
-    if (typeof url === "string" && url.endsWith("/chat")) {
-      url = url.replace("/chat", activeEndpoint);
-    }
-    return originalFetch(url, options);
-  };
-})();
-
- // ===== NeuroGen Intelligent Mode v2 Override (ADD-ONLY) =====
-(function () {
-  const originalFetch = window.fetch;
-
-  window.fetch = function (url, options) {
-    // Only affect intelligent mode calls
-    if (
-      typeof url === "string" &&
-      url.endsWith("/execute")
-    ) {
-      url = url.replace("/execute", "/execute.v2");
-    }
-
-    return originalFetch(url, options);
-  };
-})();
-
-  // ===== NeuroGen Intelligent Mode v3 Override (ADD-ONLY) =====
-(function () {
-  const originalFetch = window.fetch;
-
-  window.fetch = function (url, options) {
-    if (
-      typeof url === "string" &&
-      url.endsWith("/execute.v2")
-    ) {
-      url = url.replace("/execute.v2", "/execute.v3");
-    }
-    return originalFetch(url, options);
-  };
-})();
- // ===== NeuroGen FINAL Intelligent Endpoint Lock (ADD-ONLY) =====
-(function () {
-  const originalFetch = window.fetch;
-
-  window.fetch = function (url, options) {
-    if (typeof url === "string") {
-      // Force intelligent mode directly to execute.v3
-      if (url.includes("/chat") && document.getElementById("modeToggle")?.checked) {
-        url = url.replace("/chat", "/execute.v3");
-      }
-    }
-    return originalFetch(url, options);
-  };
-})();
-  // ===== NeuroGen SINGLE-BRAIN LOCK (EXECUTE.V3 ONLY, ADD-ONLY) =====
-(function () {
-  const originalFetch = window.fetch;
-
-  window.fetch = function (url, options) {
-    if (typeof url === "string") {
-      // Force ALL chat traffic to execute.v3
-      if (url.includes("/chat") || url.includes("/execute")) {
-        url = url.replace(/\/(chat|execute(\.v\d+)?)/, "/execute.v3");
-      }
-    }
-    return originalFetch(url, options);
-  };
-})();
+}   
 </script>
 
 </body>
