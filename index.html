@@ -238,6 +238,23 @@ function addMessage(text, type) {
     return originalFetch(url, options);
   };
 })();
+
+ // ===== NeuroGen Intelligent Mode v2 Override (ADD-ONLY) =====
+(function () {
+  const originalFetch = window.fetch;
+
+  window.fetch = function (url, options) {
+    // Only affect intelligent mode calls
+    if (
+      typeof url === "string" &&
+      url.endsWith("/execute")
+    ) {
+      url = url.replace("/execute", "/execute.v2");
+    }
+
+    return originalFetch(url, options);
+  };
+})(); 
 </script>
 
 </body>
