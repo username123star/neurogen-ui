@@ -116,64 +116,97 @@
   </footer>
 
   <script>
-    const chat = document.getElementById("chat");
-    const input = document.getElementById("input");
-    const sendBtn = document.getElementById("send");
-    const datetimeEl = document.getElementById("datetime");
+  // ===============================
+  // ELEMENTS
+  // ===============================
+  const chat = document.getElementById("chat");
+  const input = document.getElementById("input");
+  const sendBtn = document.getElementById("send");
+  const datetimeEl = document.getElementById("datetime");
 
-    const API_URL = "https://neurogen.up.railway.app/ai/chat";
+  // ===============================
+  // BACKEND ENDPOINT (MATCHES index.js)
+  // ===============================
+  const API_URL = "https://neurogen.up.railway.app/ai/chat";
 
-    function updateDateTime() {
-      const now = new Date();
-      datetimeEl.textContent = now.toLocaleString();
+  // ===============================
+  // DATE & TIME
+  // ===============================
+  function updateDateTime() {
+    const now = new Date();
+    datetimeEl.textContent = now.toLocaleString();
+  }
+  setInterval(updateDateTime, 1000);
+  updateDateTime();
+
+  // ===============================
+  // UI HELPERS
+  // ===============================
+  function addMessage(text, type) {
+    const div = document.createElement("div");
+    div.className = "msg " + type;
+    div.textContent = text;
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function addThinking() {
+    const div = document.createElement("div");
+    div.className = "msg bot";
+    div.textContent = "Thinking...";
+    chat.appendChild(div);
+    chat.scrollTop = chat.scrollHeight;
+    return div;
+  }
+
+  // ===============================
+  // SEND MESSAGE
+  // ===============================
+  async function sendMessage() {
+    const message = input.value.trim();
+    if (!message) return;
+
+    addMessage(message, "user");
+    input.value = "";
+    sendBtn.disabled = true;
+
+    const thinking = addThinking();
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ message })
+      });
+
+      const data = await res.json();
+
+      thinking.textContent =
+        data.reply ||
+        data.error ||
+        "No response from NeuroGen.";
+
+    } catch (err) {
+      thinking.textContent = "Connection error. Check network.";
     }
-    setInterval(updateDateTime, 1000);
-    updateDateTime();
 
-    function addMessage(text, type) {
-      const div = document.createElement("div");
-      div.className = "msg " + type;
-      div.textContent = text;
-      chat.appendChild(div);
-      chat.scrollTop = chat.scrollHeight;
+    sendBtn.disabled = false;
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  // ===============================
+  // EVENTS
+  // ===============================
+  sendBtn.onclick = sendMessage;
+
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      sendMessage();
     }
-
-    async function sendMessage() {
-      const message = input.value.trim();
-      if (!message) return;
-
-      addMessage(message, "user");
-      input.value = "";
-      sendBtn.disabled = true;
-
-      const thinking = document.createElement("div");
-      thinking.className = "msg bot";
-      thinking.textContent = "Thinking…";
-      chat.appendChild(thinking);
-
-      try {
-        const res = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message })
-        });
-
-        const data = await res.json();
-        thinking.textContent = data.reply || "No response.";
-
-      } catch {
-        thinking.textContent = "Connection error.";
-      }
-
-      sendBtn.disabled = false;
-      chat.scrollTop = chat.scrollHeight;
-    }
-
-    sendBtn.onclick = sendMessage;
-    input.addEventListener("keydown", e => {
-      if (e.key === "Enter") sendMessage();
-    });
-  </script>
-
+  });
+</script>
+        
 </body>
 </html>
