@@ -120,6 +120,54 @@
 </footer>
 
 <script>
+  // ===== NeuroGen Extension Layer (ADD-ONLY, SAFE) =====
+(function () {
+  const originalAddMessage = window.addMessage;
+
+  if (!originalAddMessage) return;
+
+  let thinkingNode = null;
+
+  function showThinking() {
+    thinkingNode = document.createElement("div");
+    thinkingNode.className = "msg bot";
+    thinkingNode.textContent = "•••";
+    chat.appendChild(thinkingNode);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
+  function hideThinking() {
+    if (thinkingNode) {
+      thinkingNode.remove();
+      thinkingNode = null;
+    }
+  }
+
+  function stream(text) {
+    hideThinking();
+
+    const msg = document.createElement("div");
+    msg.className = "msg bot";
+    chat.appendChild(msg);
+
+    let i = 0;
+    const timer = setInterval(() => {
+      msg.textContent += text[i++];
+      chat.scrollTop = chat.scrollHeight;
+      if (i >= text.length) clearInterval(timer);
+    }, 20);
+  }
+
+  // Override rendering ONLY, logic untouched
+  window.addMessage = function (text, type) {
+    if (type === "bot") {
+      showThinking();
+      setTimeout(() => stream(text), 300);
+    } else {
+      originalAddMessage(text, type);
+    }
+  };
+})();
 const BACKEND_URL = "https://neurogen.up.railway.app/chat";
 
 const input = document.getElementById("input");
